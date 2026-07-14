@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}🎯 Detection Result - Recon{% endblock %}
+
+{% block content %}
+<section class="result-section">
+    <div class="result-header">
+        <h1><i class="fas fa-shield-halved"></i> Threat Detection Result</h1>
+    </div>
+
+    {% if result and result.success %}
+    <!-- Main Result Card -->
+    <div class="result-main-card 
+        {% if result.threat_level == 'Low' %}result-safe
+        {% elif result.threat_level == 'Medium' %}result-warning
+        {% elif result.threat_level == 'High' %}result-danger
+        {% else %}result-critical{% endif %}">
+        
+        <div class="result-threat-icon">
+            {% if result.threat_level == 'Low' %}
+                <i class="fas fa-check-circle"></i>
+            {% elif result.threat_level == 'Medium' %}
+                <i class="fas fa-exclamation-triangle"></i>
+            {% elif result.threat_level == 'High' %}
+                <i class="fas fa-radiation"></i>
+            {% else %}
+                <i class="fas fa-skull-crossbones"></i>
+            {% endif %}
+        </div>
+
+        <div class="result-prediction">
+            <span class="result-label">Detected Classification</span>
+            <h2 class="result-value">{{ result.prediction }}</h2>
+        </div>
+
+        <div class="result-badges">
+            <div class="result-badge threat-badge">
+                <span class="badge-label">Threat Level</span>
+                <span class="badge-value level-{{ result.threat_level|lower }}">{{ result.threat_level }}</span>
+            </div>
+            <div class="result-badge confidence-badge">
+                <span class="badge-label">Confidence</span>
+                <span class="badge-value">{{ "%.1f"|format(result.confidence * 100) }}%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confidence Gauge -->
+    <div class="gauge-section">
+        <h3 class="subsection-title"><i class="fas fa-tachometer-alt"></i> Confidence Score</h3>
+        <div class="gauge-container">
+            <div class="gauge">
+                <div class="gauge-fill" style="--percentage: {{ result.confidence * 100 }}; --gauge-color: 
+                    {% if result.confidence >= 0.9 %}#10b981
+                    {% elif result.confidence >= 0.7 %}#f59e0b
+                    {% else %}#ef4444{% endif %};">
+                </div>
+                <div class="gauge-center">
+                    <span class="gauge-value">{{ "%.1f"|format(result.confidence * 100) }}%</span>
+                    <span class="gauge-label">Confidence</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Class Probabilities -->
+    <div class="probabilities-section">
+        <h3 class="subsection-title"><i class="fas fa-chart-bar"></i> Class Probabilities</h3>
+        <div class="probability-bars">
+            {% for class_name, probability in result.all_probabilities.items() %}
+            <div class="probability-item">
+                <div class="prob-info">
+                    <span class="prob-name">
+                        {% if class_name|lower == 'normal' %}
+                            <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                        {% elif 'dos' in class_name|lower %}
+                            <i class="fas fa-server" style="color: #ef4444;"></i>
+                        {% elif 'probe' in class_name|lower %}
+                            <i class="fas fa-binoculars" style="color: #f59e0b;"></i>
+                        {% elif 'r2l' in class_name|lower %}
+                            <i class="fas fa-user-secret" style="color: #ef4444;"></i>
+                        {% elif 'u2r' in class_name|lower %}
+                            <i class="fas fa-skull" style="color: #dc2626;"></i>
+                        {% else %}
+                            <i class="fas fa-circle" style="color: #6b7280;"></i>
+                        {% endif %}
+                        {{ class_name }}
+                    </span>
+                    <span class="prob-value">{{ "%.2f"|format(probability * 100) }}%</span>
+                </div>
+                <div class="prob-bar">
+                    <div class="prob-fill {% if class_name == result.prediction %}prob-fill-active{% endif %}" 
+                         style="width: {{ probability * 100 }}%;">
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recommendation -->
+    <div class="recommendation-section">
+        <h3 class="subsection-title"><i class="fas fa-lightbulb"></i> Security Recommendation</h3>
+        <div class="recommendation-card 
+            {% if result.threat_level == 'Low' %}rec-safe
+            {% elif result.threat_level == 'Medium' %}rec-warning
+            {% elif result.threat_level == 'High' %}rec-danger
+            {% else %}rec-critical{% endif %}">
+            <p>{{ result.recommendation }}</p>
+        </div>
+    </div>
+
+    <!-- Input Features Summary -->
+    {% if features %}
+    <div class="features-summary-section">
+        <h3 class="subsection-title"><i class="fas fa-list-check"></i> Analyzed Features</h3>
+        <div class="features-summary-grid">
+            {% for key, value in features.items() %}
+            <div class="feature-summary-item">
+                <span class="feature-key">{{ key }}</span>
+                <span class="feature-val">{{ value }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="result-actions">
+        <a href="{{ url_for('predict_page') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-redo"></i> Analyze Another
+        </a>
+        <a href="{{ url_for('index') }}" class="btn btn-outline btn-lg">
+            <i class="fas fa-home"></i> Dashboard
+        </a>
+    </div>
+
+    {% else %}
+    <div class="info-card">
+        <div class="info-icon" style="color: #ef4444;">
+            <i class="fas fa-times-circle"></i>
+        </div>
+        <h3>Prediction Failed</h3>
+        <p>An error occurred during threat analysis. Please try again.</p>
+        <a href="{{ url_for('predict_page') }}" class="btn btn-primary" style="margin-top: 1rem;">
+            <i class="fas fa-redo"></i> Try Again
+        </a>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Animate probability bars on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const fills = document.querySelectorAll('.prob-fill');
+        fills.forEach((fill, index) => {
+            const width = fill.style.width;
+            fill.style.width = '0%';
+            setTimeout(() => {
+                fill.style.transition = 'width 1s cubic-bezier(0.4, 0, 0.2, 1)';
+                fill.style.width = width;
+            }, 100 + index * 150);
+        });
+
+        // Animate gauge
+        const gaugeFill = document.querySelector('.gauge-fill');
+        if (gaugeFill) {
+            const percentage = getComputedStyle(gaugeFill).getPropertyValue('--percentage');
+            gaugeFill.style.setProperty('--animate-to', percentage);
+        }
+    });
+</script>
+{% endblock %}

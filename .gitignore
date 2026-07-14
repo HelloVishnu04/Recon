@@ -1,0 +1,35 @@
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Generated presentations (large binary files)
+*.pptx
+
+# Model artifacts are tracked (they're essential for deployment)
+# Uncomment below to exclude them if too large:
+# models/*.pkl
+# models/*.json

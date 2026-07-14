@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}🔍 Analyze Network Traffic - Recon{% endblock %}
+
+{% block content %}
+<section class="predict-section">
+    <div class="predict-header">
+        <h1><i class="fas fa-search"></i> Analyze Network Traffic</h1>
+        <p>Enter network traffic features below to detect potential cyber threats using AI classification.</p>
+    </div>
+
+    {% if feature_data and feature_data.feature_names %}
+    <!-- Quick CSV Line Loader Section -->
+    <div class="csv-fill-section" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm);">
+        <h3 style="font-size: 1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;"><i class="fas fa-file-csv" style="color: var(--accent-blue);"></i> Quick CSV Line Loader</h3>
+        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">Paste a single line of raw CSV data (comma-separated values) in the exact order of features to automatically fill the form.</p>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="csvLineInput" class="form-input" style="flex: 1; font-family: var(--font-mono); font-size: 0.8rem;" placeholder="e.g. 0,tcp,private,REJ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,229,10,0.00,0.00,1.00,1.00,0.04,0.06,0.00,255,10,0.04,0.06,0.00,0.00,0.00,0.00,1.00,1.00">
+            <button type="button" class="btn btn-primary" onclick="fillFromCSV()">
+                <i class="fas fa-file-import"></i> Parse & Fill
+            </button>
+        </div>
+        <div id="csvFeedback" style="font-size: 0.75rem; margin-top: 8px; display: none; font-weight: 500;"></div>
+    </div>
+
+    <form method="POST" action="{{ url_for('predict') }}" class="predict-form" id="predictForm">
+        <div class="form-header">
+            <div class="form-info">
+                <i class="fas fa-info-circle"></i>
+                <span>Enter values for <strong>{{ feature_data.total_features }}</strong> network traffic features. Leave empty fields as 0.</span>
+            </div>
+            <div class="form-actions-top">
+                <button type="button" class="btn btn-outline btn-sm" onclick="fillSampleData()">
+                    <i class="fas fa-magic"></i> Fill Sample Data
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="clearForm()">
+                    <i class="fas fa-eraser"></i> Clear All
+                </button>
+            </div>
+        </div>
+
+        <div class="features-form-grid">
+            {% for feature_name in feature_data.feature_names %}
+            <div class="form-group">
+                <label for="feature_{{ feature_name }}" class="form-label">
+                    {% if feature_name in feature_data.categorical_columns %}
+                        <i class="fas fa-font"></i>
+                    {% else %}
+                        <i class="fas fa-hashtag"></i>
+                    {% endif %}
+                    {{ feature_name }}
+                </label>
+                {% if feature_name in feature_data.categorical_columns %}
+                <input type="text" 
+                       id="feature_{{ feature_name }}" 
+                       name="feature_{{ feature_name }}" 
+                       class="form-input" 
+                       placeholder="Enter {{ feature_name }}"
+                       data-feature="{{ feature_name }}"
+                       data-type="categorical">
+                {% else %}
+                <input type="number" 
+                       id="feature_{{ feature_name }}" 
+                       name="feature_{{ feature_name }}" 
+                       class="form-input" 
+                       placeholder="0" 
+                       step="any" 
+                       value="0"
+                       data-feature="{{ feature_name }}"
+                       data-type="numerical">
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="form-submit">
+            <button type="submit" class="btn btn-primary btn-lg btn-submit" id="submitBtn">
+                <i class="fas fa-shield-halved"></i>
+                <span>Analyze & Detect Threats</span>
+                <div class="btn-loader" style="display:none;">
+                    <div class="spinner"></div>
+                </div>
+            </button>
+        </div>
+    </form>
+    {% else %}
+    <div class="info-card">
+        <div class="info-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3>API Not Available</h3>
+        <p>Cannot connect to the FastAPI backend. Please ensure:</p>
+        <ol>
+            <li>The ML model has been trained and pickle files generated</li>
+            <li>FastAPI server is running: <code>cd api && uvicorn main:app --reload --port 8000</code></li>
+        </ol>
+        <a href="{{ url_for('predict_page') }}" class="btn btn-primary" style="margin-top: 1rem;">
+            <i class="fas fa-redo"></i> Retry Connection
+        </a>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Sample data for common network traffic features
+    const sampleData = {
+        'duration': 0,
+        'protocol_type': 'tcp',
+        'service': 'http',
+        'flag': 'SF',
+        'src_bytes': 181,
+        'dst_bytes': 5450,
+        'land': 0,
+        'wrong_fragment': 0,
+        'urgent': 0,
+        'hot': 0,
+        'num_failed_logins': 0,
+        'logged_in': 1,
+        'num_compromised': 0,
+        'root_shell': 0,
+        'su_attempted': 0,
+        'num_root': 0,
+        'num_file_creations': 0,
+        'num_shells': 0,
+        'num_access_files': 0,
+        'is_host_login': 0,
+        'is_guest_login': 0,
+        'count': 8,
+        'srv_count': 8,
+        'serror_rate': 0.0,
+        'srv_serror_rate': 0.0,
+        'rerror_rate': 0.0,
+        'srv_rerror_rate': 0.0,
+        'same_srv_rate': 1.0,
+        'diff_srv_rate': 0.0,
+        'srv_diff_host_rate': 0.0,
+        'dst_host_count': 9,
+        'dst_host_srv_count': 9,
+        'dst_host_same_srv_rate': 1.0,
+        'dst_host_diff_srv_rate': 0.0,
+        'dst_host_same_src_port_rate': 0.11,
+        'dst_host_srv_diff_host_rate': 0.0,
+        'dst_host_serror_rate': 0.0,
+        'dst_host_srv_serror_rate': 0.0,
+        'dst_host_rerror_rate': 0.0,
+        'dst_host_srv_rerror_rate': 0.0
+    };
+
+    function fillSampleData() {
+        const inputs = document.querySelectorAll('.form-input');
+        inputs.forEach(input => {
+            const featureName = input.dataset.feature;
+            if (featureName in sampleData) {
+                input.value = sampleData[featureName];
+                input.classList.add('filled-animation');
+                setTimeout(() => input.classList.remove('filled-animation'), 500);
+            }
+        });
+    }
+
+    function clearForm() {
+        const inputs = document.querySelectorAll('.form-input');
+        inputs.forEach(input => {
+            if (input.dataset.type === 'numerical') {
+                input.value = '0';
+            } else {
+                input.value = '';
+            }
+        });
+    }
+
+    function fillFromCSV() {
+        const csvInput = document.getElementById('csvLineInput').value.trim();
+        const feedback = document.getElementById('csvFeedback');
+        
+        if (!csvInput) {
+            feedback.style.display = 'block';
+            feedback.style.color = 'var(--accent-red)';
+            feedback.textContent = 'Please enter a CSV line first.';
+            return;
+        }
+
+        // Split by commas, handling potential quotes/spaces
+        const values = csvInput.split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
+        const inputs = document.querySelectorAll('.form-input:not(#csvLineInput)');
+        
+        if (values.length === 0) {
+            feedback.style.display = 'block';
+            feedback.style.color = 'var(--accent-red)';
+            feedback.textContent = 'No values found in the input.';
+            return;
+        }
+
+        let filledCount = 0;
+        inputs.forEach((input, idx) => {
+            if (idx < values.length) {
+                input.value = values[idx];
+                input.classList.add('filled-animation');
+                setTimeout(() => input.classList.remove('filled-animation'), 500);
+                filledCount++;
+            }
+        });
+
+        feedback.style.display = 'block';
+        feedback.style.color = 'var(--accent-green)';
+        feedback.textContent = `Successfully filled ${filledCount} fields from CSV line (total values parsed: ${values.length}).`;
+    }
+
+    // Form submit loading state
+    document.getElementById('predictForm')?.addEventListener('submit', function() {
+        const btn = document.getElementById('submitBtn');
+        const loader = btn.querySelector('.btn-loader');
+        const span = btn.querySelector('span');
+        span.textContent = 'Analyzing...';
+        loader.style.display = 'inline-block';
+        btn.disabled = true;
+        btn.classList.add('loading');
+    });
+</script>
+{% endblock %}

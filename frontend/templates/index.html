@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}🛡️ Recon - Dashboard{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-badge">
+            <i class="fas fa-microchip"></i> AI-Powered Security
+        </div>
+        <h1 class="hero-title">
+            Recon<br>
+            <span class="gradient-text">Framework</span>
+        </h1>
+        <p class="hero-subtitle">
+            Real-time network traffic analysis powered by Machine Learning. 
+            Detect DoS attacks, port scans, privilege escalation, and more with intelligent threat classification.
+        </p>
+        <div class="hero-actions">
+            <a href="{{ url_for('predict_page') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-search"></i> Analyze Traffic
+            </a>
+            <a href="#features" class="btn btn-outline btn-lg">
+                <i class="fas fa-info-circle"></i> Learn More
+            </a>
+        </div>
+    </div>
+    <div class="hero-visual">
+        <div class="shield-container">
+            <div class="shield-ring ring-1"></div>
+            <div class="shield-ring ring-2"></div>
+            <div class="shield-ring ring-3"></div>
+            <div class="shield-icon">
+                <i class="fas fa-shield-halved"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Cards -->
+{% if model_info %}
+<section class="stats-section">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="--accent: #00d2ff;">
+                <i class="fas fa-bullseye"></i>
+            </div>
+            <div class="stat-value">{{ "%.2f"|format(model_info.accuracy * 100) }}%</div>
+            <div class="stat-label">Model Accuracy</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="--accent: #7c3aed;">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <div class="stat-value">{{ model_info.n_features }}</div>
+            <div class="stat-label">Input Features</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="--accent: #f59e0b;">
+                <i class="fas fa-tags"></i>
+            </div>
+            <div class="stat-value">{{ model_info.n_classes }}</div>
+            <div class="stat-label">Threat Classes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="--accent: #10b981;">
+                <i class="fas fa-tree"></i>
+            </div>
+            <div class="stat-value">{{ model_info.n_estimators }}</div>
+            <div class="stat-label">Decision Trees</div>
+        </div>
+    </div>
+</section>
+
+<!-- Model Metrics -->
+<section class="metrics-section">
+    <h2 class="section-title"><i class="fas fa-chart-bar"></i> Model Performance</h2>
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-bar">
+                <div class="metric-fill" style="width: {{ model_info.accuracy * 100 }}%; --bar-color: #00d2ff;"></div>
+            </div>
+            <div class="metric-info">
+                <span class="metric-name">Accuracy</span>
+                <span class="metric-value">{{ "%.2f"|format(model_info.accuracy * 100) }}%</span>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-bar">
+                <div class="metric-fill" style="width: {{ model_info.precision * 100 }}%; --bar-color: #7c3aed;"></div>
+            </div>
+            <div class="metric-info">
+                <span class="metric-name">Precision</span>
+                <span class="metric-value">{{ "%.2f"|format(model_info.precision * 100) }}%</span>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-bar">
+                <div class="metric-fill" style="width: {{ model_info.recall * 100 }}%; --bar-color: #f59e0b;"></div>
+            </div>
+            <div class="metric-info">
+                <span class="metric-name">Recall</span>
+                <span class="metric-value">{{ "%.2f"|format(model_info.recall * 100) }}%</span>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-bar">
+                <div class="metric-fill" style="width: {{ model_info.f1_score * 100 }}%; --bar-color: #10b981;"></div>
+            </div>
+            <div class="metric-info">
+                <span class="metric-name">F1 Score</span>
+                <span class="metric-value">{{ "%.2f"|format(model_info.f1_score * 100) }}%</span>
+            </div>
+        </div>
+    </div>
+</section>
+{% else %}
+<section class="stats-section">
+    <div class="info-card">
+        <div class="info-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3>Model Not Loaded</h3>
+        <p>The ML model is not yet available. Please follow these steps:</p>
+        <ol>
+            <li>Run the Jupyter notebook to train the model and generate pickle files</li>
+            <li>Start the FastAPI server: <code>cd api && uvicorn main:app --reload --port 8000</code></li>
+            <li>Refresh this page</li>
+        </ol>
+    </div>
+</section>
+{% endif %}
+
+<!-- Features Section -->
+<section id="features" class="features-section">
+    <h2 class="section-title"><i class="fas fa-bolt"></i> Key Features</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <h3>AI-Powered Detection</h3>
+            <p>Random Forest classifier trained on network traffic data for accurate threat identification and classification.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <h3>Real-Time Analysis</h3>
+            <p>Instant threat classification with confidence scoring via high-performance FastAPI REST endpoints.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-shield-virus"></i>
+            </div>
+            <h3>Multi-Threat Detection</h3>
+            <p>Identifies DoS, Probe, R2L, U2R attacks and normal traffic with detailed probability breakdown.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <h3>Confidence Scoring</h3>
+            <p>Probability-based confidence metrics for every prediction to assess detection reliability.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-file-shield"></i>
+            </div>
+            <h3>Security Recommendations</h3>
+            <p>Actionable security guidance and response recommendations tailored to each threat type.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-code"></i>
+            </div>
+            <h3>REST API</h3>
+            <p>Full-featured API with Swagger docs, Pydantic validation, and CORS support for easy integration.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Attack Types Section -->
+<section class="attacks-section">
+    <h2 class="section-title"><i class="fas fa-skull-crossbones"></i> Detectable Threat Categories</h2>
+    <div class="attacks-grid">
+        <div class="attack-card attack-normal">
+            <div class="attack-header">
+                <i class="fas fa-check-circle"></i>
+                <span class="attack-level level-low">Low Risk</span>
+            </div>
+            <h3>Normal Traffic</h3>
+            <p>Legitimate network communications including standard HTTP, FTP, SSH, and DNS activity.</p>
+        </div>
+        <div class="attack-card attack-dos">
+            <div class="attack-header">
+                <i class="fas fa-server"></i>
+                <span class="attack-level level-high">High Risk</span>
+            </div>
+            <h3>DoS Attack</h3>
+            <p>Denial of Service — SYN floods, Smurf attacks, Teardrop, Neptune, and resource exhaustion.</p>
+        </div>
+        <div class="attack-card attack-probe">
+            <div class="attack-header">
+                <i class="fas fa-binoculars"></i>
+                <span class="attack-level level-medium">Medium Risk</span>
+            </div>
+            <h3>Probe Attack</h3>
+            <p>Reconnaissance — Port scanning, IP sweeps, Nmap probes, and Satan vulnerability scans.</p>
+        </div>
+        <div class="attack-card attack-r2l">
+            <div class="attack-header">
+                <i class="fas fa-user-secret"></i>
+                <span class="attack-level level-high">High Risk</span>
+            </div>
+            <h3>R2L Attack</h3>
+            <p>Remote to Local — Password guessing, phishing, FTP write access, and unauthorized remote entry.</p>
+        </div>
+        <div class="attack-card attack-u2r">
+            <div class="attack-header">
+                <i class="fas fa-skull"></i>
+                <span class="attack-level level-critical">Critical</span>
+            </div>
+            <h3>U2R Attack</h3>
+            <p>User to Root — Buffer overflow, rootkit installation, Perl exploits, and privilege escalation.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
