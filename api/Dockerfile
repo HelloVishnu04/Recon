@@ -18,8 +18,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy model artifacts, env variables, schemas, and source code
 COPY models/ ./models/
 COPY api/ ./api/
-COPY .env .env
-
 # Expose port
 EXPOSE 8000
 
